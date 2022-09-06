@@ -390,9 +390,11 @@ local function Load(...)
 		return CheckTextBox.ContentText
 	end
 	local Owner = Service"Players".LocalPlayer
-	while not Owner do
-		Wait(Service"Players".PlayerAdded)
-		Owner = Service"Players".LocalPlayer
+	if not Service"Run":IsServer() then
+		while not Owner do
+			Wait(Service"Players".PlayerAdded)
+			Owner = Service"Players".LocalPlayer
+		end
 	end
 	local Functions = {
 		{"Nil",Nil},
@@ -415,7 +417,7 @@ local function Load(...)
 		{"GetHumanoid",GetHumanoid},
 		{"ConvertTime",ConvertTime},
 		{"GetContentText",GetContentText},
-		{"Owner",Owner}
+		not Service"Run":IsServer() and {"Owner",Owner} or nil
 	}
 	for SelectionType,Function in next,{
 		All = function() end,
