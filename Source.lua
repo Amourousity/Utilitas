@@ -454,4 +454,7 @@ local function Load(...)
 	end
 	return unpack(Functions)
 end
-return 0 < select("#",...) and Load(...) or Load
+if select("#",...) < 1 then
+	return Load
+end
+return Load(...)
