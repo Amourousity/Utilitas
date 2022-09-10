@@ -149,6 +149,7 @@ local function Load(...)
 					Object = WaitForChild(Object,Name)
 				end
 			end
+			return Object
 		end
 	end
 	Valid = {
