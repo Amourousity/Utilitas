@@ -75,6 +75,7 @@ local function Load(...)
 			"Permissions",
 			"PluginDebug",
 			"StarterGui.",
+			"AvatarEditor",
 			"Localization",
 			"Notification",
 			"ScriptEditor",
