@@ -182,7 +182,7 @@ local function Load(...)
 			return type(Name) == "string" and Services[Name] or error(('Failed to get Service "%s"'):format(tostring(Name)),0)
 		end,function(Object,...)
 			Object = Valid.Instance(Object)
-			for _,Name {
+			for _,Name in {
 				...
 			 } do
 				Name = Valid.String(Name)
