@@ -217,7 +217,7 @@ local function Load(...)
 				true_yes_on_positive_1_i = true,
 				false_no_off_negative_0_o = false
 			} do
-				for _,Name in next,Names:split"_" do
+				for _,Name in Names:split"_" do
 					if Boolean == Name then
 						return Value
 					end
