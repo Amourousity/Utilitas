@@ -10,7 +10,7 @@ local function Load(...)
 	local Destroy,Wait,Service,Valid,WaitForSequence
 	do
 		local SignalWait,Services,DestroyObject,WaitForChild,DisconnectObject = game.Close.Wait,{},game.Destroy,game.WaitForChild,nil
-		for _,Name in next,{
+		for _,Name in {
 			"Ad",
 			"VR",
 			"Gui",
@@ -148,10 +148,10 @@ local function Load(...)
 			DisconnectObject(Connection)
 		end
 		Destroy,Wait,Service,WaitForSequence = function(...)
-			for _,Object in next,{
+			for _,Object in {
 				...
 			} do
-				for Type,Function in next,{
+				for Type,Function in {
 					Instance = function()
 						pcall(DestroyObject,Object)
 					end,
@@ -161,7 +161,7 @@ local function Load(...)
 						end
 					end,
 					table = function()
-						for Index,Value in next,Object do
+						for Index,Value in Object do
 							Object[Index] = nil
 							Destroy(Index)
 							Destroy(Value)
@@ -182,7 +182,7 @@ local function Load(...)
 			return type(Name) == "string" and Services[Name] or error(('Failed to get Service "%s"'):format(tostring(Name)),0)
 		end,function(Object,...)
 			Object = Valid.Instance(Object)
-			for _,Name in next,{
+			for _,Name {
 				...
 			 } do
 				Name = Valid.String(Name)
@@ -196,7 +196,7 @@ local function Load(...)
 	Valid = {
 		Table = function(Table,Substitute)
 			Table = type(Table) == "table" and Table or {}
-			for Index,Value in next,type(Substitute) == "table" and Substitute or {} do
+			for Index,Value in type(Substitute) == "table" and Substitute or {} do
 				Table[Index] = typeof(Table[Index]) == typeof(Value) and Table[Index] or Value
 			end
 			return Table
@@ -213,7 +213,7 @@ local function Load(...)
 		end,
 		Boolean = function(Boolean,Substitute)
 			Boolean = tostring(Boolean):lower()
-			for Names,Value in next,{
+			for Names,Value in {
 				true_yes_on_positive_1_i = true,
 				false_no_off_negative_0_o = false
 			} do
@@ -237,7 +237,7 @@ local function Load(...)
 			}
 		})
 		local AvailableCharacters = {}
-		for _,Set in next,Settings.CharacterSet do
+		for _,Set in Settings.CharacterSet do
 			for Character = Set.Min,Set.Max do
 				table.insert(AvailableCharacters,string.char(Character))
 			end
@@ -264,7 +264,7 @@ local function Load(...)
 				Name = RandomString(),
 				Archivable = RandomBool()
 			})
-			for Property,Value in next,Properties do
+			for Property,Value in Properties do
 				local Success,Error = pcall(function()
 					NewObject[Property] = NilConvert(Value)
 				end)
@@ -280,7 +280,7 @@ local function Load(...)
 	end
 	local function Create(Data)
 		local Instances = {}
-		for _,InstanceData in next,Valid.Table(Data) do
+		for _,InstanceData in Valid.Table(Data) do
 			if not Valid.String(InstanceData.ClassName) then
 				error"Missing ClassName in InstanceData for function Create"
 			elseif not Valid.String(InstanceData.Name) then
@@ -302,7 +302,7 @@ local function Load(...)
 			task.delay(MaxYield,Return.Fire,Return)
 		end
 		local SignalStart,Ready = os.clock()
-		for Type,Functionality in next,{
+		for Type,Functionality in {
 			RBXScriptSignal = function()
 				Return:Fire(Wait(Signal))
 			end,
@@ -404,7 +404,7 @@ local function Load(...)
 	local function ConvertTime(Time)
 		local Sign = Time < 0
 		Time = math.abs(Time)
-		for _,Values in next,{
+		for _,Values in {
 			{31536e3,"year"},
 			{2628003,"month"},
 			{604800,"week"},
@@ -461,11 +461,11 @@ local function Load(...)
 		{"GetContentText",GetContentText},
 		not Service"Run":IsServer() and {"Owner",Owner} or nil
 	}
-	for SelectionType,Function in next,{
+	for SelectionType,Function in {
 		All = function() end,
 		Disclude = function(...)
 			for Index = 1,select("#",...) do
-				for Key,Values in next,Functions do
+				for Key,Values in Functions do
 					if Values[1] == Valid.String(select(Index,...),"") then
 						table.remove(Functions,Key)
 						break
@@ -476,7 +476,7 @@ local function Load(...)
 		Include = function(...)
 			local NewFunctions = {}
 			for Index = 1,select("#",...) do
-				for _,Values in next,Functions do
+				for _,Values in Functions do
 					if Values[1] == Valid.String(select(Index,...),"")then
 						table.insert(NewFunctions,Values)
 						break
@@ -491,7 +491,7 @@ local function Load(...)
 			break
 		end
 	end
-	for Index,Values in next,Functions do
+	for Index,Values in Functions do
 		Functions[Index] = Values[2]
 	end
 	return unpack(Functions)
