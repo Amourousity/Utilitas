@@ -7,7 +7,7 @@
 [||||]       [|]     [|||||||||] [||||||||] [|||||||||]     [|] [|]     [|]  [|||||]]
 local function Load(...)
 	local Nil,Connect = {},game.Close.Connect
-	local Destroy,Wait,Service,Valid,WaitForSequence
+	local Destroy,Wait,Service,Valid,WaitForSequence,WaitForChildOfClass
 	do
 		local SignalWait,Services,DestroyObject,WaitForChild,DisconnectObject = game.Close.Wait,{},game.Destroy,game.WaitForChild,nil
 		for _,Name in {
@@ -147,7 +147,7 @@ local function Load(...)
 			DisconnectObject = Connection.Disconnect
 			DisconnectObject(Connection)
 		end
-		Destroy,Wait,Service,WaitForSequence = function(...)
+		Destroy,Wait,Service,WaitForSequence,WaitForChildOfClass = function(...)
 			for _,Object in {
 				...
 			} do
@@ -191,6 +191,12 @@ local function Load(...)
 				end
 			end
 			return Object
+		end,function(Object,ClassName)
+			local Child = Object:FindFirstChildOfClass(ClassName)
+			while not Child or Child.ClassName ~= ClassName do
+				Child = Object.ChildAdded:Wait()
+			end
+			return Child
 		end
 	end
 	Valid = {
@@ -459,8 +465,11 @@ local function Load(...)
 		{"GetHumanoid",GetHumanoid},
 		{"ConvertTime",ConvertTime},
 		{"GetContentText",GetContentText},
-		not Service"Run":IsServer() and {"Owner",Owner} or nil
+		{"WaitForChildOfClass",WaitForChildOfClass}
 	}
+	if not Service"Run":IsServer() then
+		table.insert(Functions,1,{"Owner",Owner})
+	end
 	for SelectionType,Function in {
 		All = function() end,
 		Disclude = function(...)
