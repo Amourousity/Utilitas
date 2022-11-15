@@ -349,7 +349,7 @@ local function Load(...)
 					EasingStyle = Enum.EasingStyle.Quad,
 					EasingDirection = Enum.EasingDirection.Out
 				})
-				local Tween = game:GetService"TweenService":Create(Object,TweenInfo.new(Data.Time,Data.EasingStyle,Data.EasingDirection,Data.RepeatCount,Data.Reverses,Data.DelayTime),Data.Properties)
+				local Tween = Service"Tween":Create(Object,TweenInfo.new(Data.Time,Data.EasingStyle,Data.EasingDirection,Data.RepeatCount,Data.Reverses,Data.DelayTime),Data.Properties)
 				Tween:Play()
 				if Data.Yields then
 					Wait(Tween.Completed)
