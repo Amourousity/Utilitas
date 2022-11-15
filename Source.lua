@@ -148,10 +148,8 @@ local function Load(...)
 			DisconnectObject(Connection)
 		end
 		Destroy,Wait,Service,WaitForSequence,WaitForChildOfClass = function(...)
-			for _,Object in {
-				...
-			} do
-				for Type,Function in {
+			for _,Object in {...} do
+				local Function = ({
 					Instance = function()
 						pcall(DestroyObject,Object)
 					end,
@@ -167,10 +165,9 @@ local function Load(...)
 							Destroy(Value)
 						end
 					end
-				} do
-					if typeof(Object) == Type then
-						Function()
-					end
+				})[typeof(Object)]
+				if Function then
+					Function()
 				end
 			end
 		end,function(Value)
@@ -248,12 +245,18 @@ local function Load(...)
 				table.insert(AvailableCharacters,string.char(Character))
 			end
 		end
-		return Settings.Format:format(("A"):rep(Settings.Length):gsub(".",function()
-			return AvailableCharacters[math.random(#AvailableCharacters)]
-		end))
+		local String = {}
+		for _ = 1,Settings.Length do
+			table.insert(String,AvailableCharacters[math.random(#AvailableCharacters)])
+		end
+		return table.concat(String)
 	end
 	local function RandomBool(Chance)
-		return math.random(math.round(1/math.min(Valid.Number(Chance,.5),1))) == 1
+		Chance = Valid.Number(Chance,.5)
+		if Chance <= 0 then
+			return false
+		end
+		return math.random(math.round(1/math.min(Chance,1))) == 1
 	end
 	local function NilConvert(Value)
 		if Value == nil then
@@ -308,7 +311,7 @@ local function Load(...)
 			task.delay(MaxYield,Return.Fire,Return)
 		end
 		local SignalStart,Ready = os.clock()
-		for Type,Functionality in {
+		local Functionality = ({
 			RBXScriptSignal = function()
 				Return:Fire(Wait(Signal))
 			end,
@@ -326,11 +329,9 @@ local function Load(...)
 					end)(pcall(Signal))
 				until Continue or Valid.Number(MaxYield) and MaxYield < os.clock()-SignalStart
 			end
-		} do
-			if typeof(Signal) == Type then
-				task.spawn(Functionality)
-				break
-			end
+		})[typeof(Signal)]
+		if Functionality then
+			task.spawn(Functionality)
 		end
 		Ready = true
 		return Wait(Return.Event)
@@ -350,9 +351,10 @@ local function Load(...)
 					EasingStyle = Enum.EasingStyle.Quad,
 					EasingDirection = Enum.EasingDirection.Out
 				})
-				Service"Tween":Create(Object,TweenInfo.new(Data.Time,Data.EasingStyle,Data.EasingDirection,Data.RepeatCount,Data.Reverses,Data.DelayTime),Data.Properties):Play()
+				local Tween = Service"Tween":Create(Object,TweenInfo.new(Data.Time,Data.EasingStyle,Data.EasingDirection,Data.RepeatCount,Data.Reverses,Data.DelayTime),Data.Properties)
+				Tween:Play()
 				if Data.Yields then
-					Wait((Data.Time+Data.DelayTime)*(1+Data.RepeatCount))
+					Wait(Tween.Completed)
 				end
 				if 0 < Data.FinishDelay then
 					Wait(Data.FinishDelay)
@@ -470,7 +472,7 @@ local function Load(...)
 	if not Service"Run":IsServer() then
 		table.insert(Functions,1,{"Owner",Owner})
 	end
-	for SelectionType,Function in {
+	local Function = ({
 		All = function() end,
 		Disclude = function(...)
 			for Index = 1,select("#",...) do
@@ -494,11 +496,9 @@ local function Load(...)
 			end
 			Functions = NewFunctions
 		end
-	} do
-		if Valid.String((...),"All") == SelectionType then
-			Function(select(2,...))
-			break
-		end
+	})[Valid.String((...),"All")]
+	if Function then
+		Function(select(2,...))
 	end
 	for Index,Values in Functions do
 		Functions[Index] = Values[2]
