@@ -10,138 +10,6 @@ local function Load(...)
 	local Destroy,Wait,Service,Valid,WaitForSequence,WaitForChildOfClass
 	do
 		local SignalWait,Services,DestroyObject,WaitForChild,DisconnectObject = game.Close.Wait,{},game.Destroy,game.WaitForChild,nil
-		for _,Name in {
-			"Ad",
-			"VR",
-			"Gui",
-			"IXP",
-			"Log",
-			"Run",
-			"Http",
-			"Test",
-			"Text",
-			"User",
-			"Asset",
-			"Badge",
-			"Chat.",
-			"Group",
-			"Mouse",
-			"Sound",
-			"Timer",
-			"Tween",
-			"Drafts",
-			"Friend",
-			"Haptic",
-			"Insert",
-			"Joints",
-			"LuaWeb",
-			"Points",
-			"Policy",
-			"Script",
-			"Social",
-			"Stats.",
-			"Studio",
-			"Teams.",
-			"Tracer",
-			"Visit.",
-			"Browser",
-			"Cookies",
-			"Debris.",
-			"Dragger",
-			"Gamepad",
-			"LodData",
-			"Package",
-			"Physics",
-			"Publish",
-			"Session",
-			"Spawner",
-			"TextBox",
-			"CoreGui.",
-			"DeviceId",
-			"GamePass",
-			"Keyboard",
-			"Language",
-			"Material",
-			"Players.",
-			"Teleport",
-			"TextChat",
-			"Analytics",
-			"AppUpdate",
-			"DataStore",
-			"Flyweight",
-			"Geometry.",
-			"Lighting.",
-			"Messaging",
-			"PluginGui",
-			"UserInput",
-			"VoiceChat",
-			"AppStorage",
-			"Collection",
-			"Controller",
-			"HttpRbxApi",
-			"MemStorage",
-			"MessageBus",
-			"Selection.",
-			"TouchInput",
-			"Workspace.",
-			"EventIngest",
-			"Marketplace",
-			"MemoryStore",
-			"Pathfinding",
-			"Permissions",
-			"PluginDebug",
-			"RtMessaging",
-			"StarterGui.",
-			"StudioData.",
-			"AvatarEditor",
-			"FaceAnimator",
-			"GuidRegistry",
-			"Localization",
-			"Notification",
-			"RbxAnalytics",
-			"ScriptEditor",
-			"ServerScript",
-			"StarterPack.",
-			"VideoCapture",
-			"VirtualUser.",
-			"CSGDictionary",
-			"ChangeHistory",
-			"ContextAction",
-			"CorePackages.",
-			"RuntimeScript",
-			"UGCValidation",
-			"CoreScriptSync",
-			"DataModelPatch",
-			"NetworkClient.",
-			"PlayerEmulator",
-			"ScriptContext.",
-			"ServerStorage.",
-			"StarterPlayer.",
-			"VersionControl",
-			"ProximityPrompt",
-			"ContentProvider.",
-			"DebuggerManager.",
-			"ReplicatedFirst.",
-			"UnvalidatedAsset",
-			"HeightmapImporter",
-			"ReplicatedStorage.",
-			"ScriptRegistration",
-			"VoiceChatInternal.",
-			"MeshContentProvider.",
-			"VirtualInputManager.",
-			"AnimationClipProvider.",
-			"ProcessInstancePhysics",
-			"HSRDataContentProvider.",
-			"FacialAnimationStreaming",
-			"IncrementalPatchBuilder.",
-			"RobloxReplicatedStorage.",
-			"AnimationFromVideoCreator",
-			"KeyframeSequenceProvider.",
-			"NonReplicatedCSGDictionary",
-			"SolidModelContentProvider."
-		} do
-			Services[Name:gsub("%.$","")] = select(2,pcall(game.GetService,game,Name:sub(-1) == "." and Name:sub(1,-2) or ("%sService"):format(Name)))
-		end
 		do
 			local Connection = Connect(game.Close,function() end)
 			DisconnectObject = Connection.Disconnect
@@ -176,7 +44,19 @@ local function Load(...)
 			end
 			return task.wait(Value)
 		end,function(Name)
-			return type(Name) == "string" and Services[Name] or error(('Failed to get Service "%s"'):format(tostring(Name)),0)
+			Name = tostring(Name or 0)
+			if Services[Name] then
+				return Services[Name]
+			end
+			local Object = select(2,pcall(game.GetService,game,Name))
+			if typeof(Object) ~= "Instance" then
+				Object = select(2,pcall(game.GetService,game,("%sService"):format(Name)))
+			end
+			if typeof(Object) == "Instance" then
+				Services[Name] = Object
+				return Object
+			end
+			warn(debug.traceback("Invalid Service Name",2))
 		end,function(Object,...)
 			Object = Valid.Instance(Object)
 			for _,Name in {...} do
