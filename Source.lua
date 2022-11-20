@@ -381,7 +381,7 @@ local function Load(...)
 	for Index,Values in Functions do
 		Functions[Index] = Values[2]
 	end
-	return unpack(Functions)
+	return Functions
 end
 if select("#",...) < 1 then
 	return Load
