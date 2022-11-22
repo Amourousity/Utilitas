@@ -29,8 +29,7 @@ local function Load(...)
 					table = function()
 						for Index,Value in Object do
 							Object[Index] = nil
-							Destroy(Index)
-							Destroy(Value)
+							Destroy(Index,Value)
 						end
 					end
 				})[typeof(Object)]
@@ -39,10 +38,7 @@ local function Load(...)
 				end
 			end
 		end,function(Value)
-			if typeof(Value) == "RBXScriptSignal" then
-				return SignalWait(Value)
-			end
-			return task.wait(Value)
+			return if typeof(Value) == "RBXScriptSignal" then SignalWait(Value) else task.wait(Value)
 		end,function(Name)
 			Name = tostring(Name or 0)
 			if Services[Name] then
@@ -131,18 +127,10 @@ local function Load(...)
 	end
 	local function RandomBool(Chance)
 		Chance = Valid.Number(Chance,.5)
-		if Chance <= 0 then
-			return false
-		end
-		return math.random(math.round(1/math.min(Chance,1))) == 1
+		return if Chance <= 0 then false else math.random(math.round(1/math.min(Chance,1))) == 1
 	end
 	local function NilConvert(Value)
-		if Value == nil then
-			return Nil
-		elseif Value == Nil then
-			return nil
-		end
-		return Value
+		return if Value == Nil then nil else Nil
 	end
 	local function NewInstance(ClassName,Parent,Properties)
 		local _,NewObject = pcall(Instance.new,ClassName)
@@ -381,7 +369,7 @@ local function Load(...)
 	for Index,Values in Functions do
 		Functions[Index] = Values[2]
 	end
-	return unpack(Functions)
+	return Functions
 end
 if select("#",...) < 1 then
 	return Load
