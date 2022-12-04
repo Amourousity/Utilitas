@@ -105,10 +105,37 @@ local function Load(...)
 				end
 			end
 			return Substitute
+		end,
+		CFrame = function(CoordinateFrame,Substitute)
+			Substitute = typeof(Substitute or 0) == "CFrame" and Substitute or CFrame.new()
+			if typeof(CoordinateFrame or 0) == "Vector3" then
+				CoordinateFrame = CFrame.new(CoordinateFrame)
+			elseif typeof(CoordinateFrame or 0) ~= "CFrame" then
+				return Substitute
+			end
+			local Components = {CoordinateFrame:GetComponents()}
+			Substitute = {Substitute:GetComponents()}
+			for Index,Component in Components do
+				Components[Index] = Valid.Number(Component,Substitute[Component])
+			end
+			return CFrame.new(unpack(Components))
+		end,
+		Vector3 = function(Vector,Substitute)
+			Substitute = typeof(Substitute or 0) == "CFrame" and Substitute or CFrame.new()
+			if typeof(Vector or 0) == "CFrame" then
+				Vector = Vector.Position
+			elseif typeof(Vector or 0) ~= "Vector3" then
+				return Substitute
+			end
+			local NewVector = Vector3.zero
+			for _,Axis in {"X","Y","Z"} do
+				NewVector += Vector3[("%sAxis"):format(Axis:lower())]*Valid.Number(Vector[Axis],Substitute[Axis])
+			end
+			return NewVector
 		end
 	}
-	local function RandomString(Settings)
-		Settings = Valid.Table(Settings,{
+	local function RandomString(Options)
+		Options = Valid.Table(Options,{
 			Format = "\0%s",
 			Length = math.random(5,99),
 			CharacterSet = {
@@ -118,13 +145,13 @@ local function Load(...)
 			}
 		})
 		local AvailableCharacters = {}
-		for _,Set in Settings.CharacterSet do
+		for _,Set in Options.CharacterSet do
 			for Character = Set.Min,Set.Max do
 				table.insert(AvailableCharacters,string.char(Character))
 			end
 		end
 		local String = {}
-		for _ = 1,Settings.Length do
+		for _ = 1,Options.Length do
 			table.insert(String,AvailableCharacters[math.random(#AvailableCharacters)])
 		end
 		return table.concat(String)
