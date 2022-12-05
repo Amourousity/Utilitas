@@ -5,7 +5,7 @@
 [|]    [|]     [|]         [|]     [|]            [|]         [|] [|]     [|]        [|]
 [|]  [|]      [|]         [|]     [|]            [|]         [|] [|]     [|] [|]    [|]
 [||||]       [|]     [|||||||||] [||||||||] [|||||||||]     [|] [|]     [|]  [|||||]]
-local function Load(...)
+local function Load(Table)
 	local Nil,Connect = {},game.Close.Connect
 	local Destroy,Wait,Service,Valid,WaitForSequence,WaitForChildOfClass
 	do
@@ -344,71 +344,43 @@ local function Load(...)
 		Destroy(CheckTextBox)
 		return CheckTextBox.ContentText
 	end
-	local Owner = Service"Players".LocalPlayer
+	local function DeltaLerp(Start,Goal,Alpha,Delta)
+		return Valid.Number(Start) and Valid.Number(Goal) and Goal+(Start-Goal)*math.clamp((1-Alpha)^Delta,0,1) or Goal:Lerp(Start,math.clamp((1-Alpha)^Delta,0,1))
+	end
+	Table.Owner = Service"Players".LocalPlayer
 	if not Service"Run":IsServer() then
-		while not Owner do
+		while not Table.Owner do
 			Wait(Service"Players".PlayerAdded)
-			Owner = Service"Players".LocalPlayer
+			Table.Owner = Service"Players".LocalPlayer
 		end
 	end
-	local Functions = {
-		{"Nil",Nil},
-		{"Connect",Connect},
-		{"Destroy",Destroy},
-		{"Wait",Wait},
-		{"Service",Service},
-		{"Valid",Valid},
-		{"WaitForSequence",WaitForSequence},
-		{"RandomString",RandomString},
-		{"RandomBool",RandomBool},
-		{"NilConvert",NilConvert},
-		{"NewInstance",NewInstance},
-		{"Create",Create},
-		{"DecodeJSON",DecodeJSON},
-		{"WaitForSignal",WaitForSignal},
-		{"Animate",Animate},
-		{"Assert",Assert},
-		{"GetCharacter",GetCharacter},
-		{"GetHumanoid",GetHumanoid},
-		{"ConvertTime",ConvertTime},
-		{"GetContentText",GetContentText},
-		{"WaitForChildOfClass",WaitForChildOfClass}
-	}
-	if not Service"Run":IsServer() then
-		table.insert(Functions,1,{"Owner",Owner})
+	for Name,Value in {
+		Nil = Nil,
+		Wait = Wait,
+		Valid = Valid,
+		Assert = Assert,
+		Create = Create,
+		Animate = Animate,
+		Connect = Connect,
+		Destroy = Destroy,
+		Service = Service,
+		DeltaLerp = DeltaLerp,
+		DecodeJSON = DecodeJSON,
+		NilConvert = NilConvert,
+		RandomBool = RandomBool,
+		ConvertTime = ConvertTime,
+		GetHumanoid = GetHumanoid,
+		NewInstance = NewInstance,
+		GetCharacter = GetCharacter,
+		RandomString = RandomString,
+		WaitForSignal = WaitForSignal,
+		GetContentText = GetContentText,
+		WaitForSequence = WaitForSequence,
+		WaitForChildOfClass = WaitForChildOfClass
+	} do
+		Table[Name] = Value
 	end
-	local Function = ({
-		All = function() end,
-		Disclude = function(...)
-			for Index = 1,select("#",...) do
-				for Key,Values in Functions do
-					if Values[1] == Valid.String(select(Index,...),"") then
-						table.remove(Functions,Key)
-						break
-					end
-				end
-			end
-		end,
-		Include = function(...)
-			local NewFunctions = {}
-			for Index = 1,select("#",...) do
-				for _,Values in Functions do
-					if Values[1] == Valid.String(select(Index,...),"")then
-						table.insert(NewFunctions,Values)
-						break
-					end
-				end
-			end
-			Functions = NewFunctions
-		end
-	})[Valid.String((...),"All")]
-	if Function then
-		Function(select(2,...))
-	end
-	for Index,Values in Functions do
-		Functions[Index] = Values[2]
-	end
-	return Functions
+	return Table
 end
 if select("#",...) < 1 then
 	return Load
