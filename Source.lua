@@ -267,26 +267,16 @@ local function Load(Table)
 			end
 		end
 	end
-	local function Assert(...)
-		for Index = 1,select("#",...),2 do
-			local Assertion,FailureMessage = select(Index,...)
-			if not Assertion then
-				warn(Valid.String(FailureMessage,"The command failed to run. No further information provided"))
-				return false
-			end
-		end
-		return true
-	end
 	local function GetCharacter(Player,MaxYield)
 		Player = Valid.Instance(Player,"Player")
-		if not Assert(Player,"Specified player does not exist or left") then
+		if not Player then
 			return
 		end
 		if Valid.Instance(Player.Character,"Model") then
 			return Player.Character
 		end
 		local Character = WaitForSignal(Player.CharacterAdded,MaxYield)
-		if Assert(Character,"The player's character took too long to load") then
+		if Character then
 			return Character
 		end
 	end
@@ -301,7 +291,7 @@ local function Load(Table)
 			else
 				return
 			end
-		elseif not Assert(Valid.Instance(Character,"Model"),"The player's character isn't valid") then
+		elseif not Valid.Instance(Character,"Model") then
 			return
 		end
 		local Humanoid = WaitForSignal(function()
@@ -310,7 +300,7 @@ local function Load(Table)
 				return Humanoid
 			end
 		end,MaxYield)
-		if Assert(Humanoid,"The player's humanoid took too long to load") then
+		if Humanoid then
 			return Humanoid
 		end
 	end
@@ -358,7 +348,6 @@ local function Load(Table)
 		Nil = Nil,
 		Wait = Wait,
 		Valid = Valid,
-		Assert = Assert,
 		Create = Create,
 		Animate = Animate,
 		Connect = Connect,
