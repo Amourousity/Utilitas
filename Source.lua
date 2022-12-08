@@ -121,7 +121,7 @@ local function Load(Table)
 			return CFrame.new(unpack(Components))
 		end,
 		Vector3 = function(Vector,Substitute)
-			Substitute = typeof(Substitute or 0) == "CFrame" and Substitute or CFrame.new()
+			Substitute = typeof(Substitute or 0) == "Vector3" and Substitute or Vector3.new()
 			if typeof(Vector or 0) == "CFrame" then
 				Vector = Vector.Position
 			elseif typeof(Vector or 0) ~= "Vector3" then
@@ -335,7 +335,8 @@ local function Load(Table)
 		return CheckTextBox.ContentText
 	end
 	local function DeltaLerp(Start,Goal,Alpha,Delta)
-		return Valid.Number(Start) and Valid.Number(Goal) and Goal+(Start-Goal)*math.clamp((1-Alpha)^Delta,0,1) or Goal:Lerp(Start,math.clamp((1-Alpha)^Delta,0,1))
+		Alpha = math.clamp((1-Valid.Number(Alpha,0))^Delta,0,1)
+		return Valid.Number(Start) and Valid.Number(Goal) and Goal+(Start-Goal)*Alpha or Goal:Lerp(Start,Alpha)
 	end
 	Table.Owner = Service"Players".LocalPlayer
 	if not Service"Run":IsServer() then
