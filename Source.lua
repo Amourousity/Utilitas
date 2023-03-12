@@ -5,374 +5,434 @@
 [|]    [|]     [|]         [|]     [|]            [|]         [|] [|]     [|]        [|]
 [|]  [|]      [|]         [|]     [|]            [|]         [|] [|]     [|] [|]    [|]
 [||||]       [|]     [|||||||||] [||||||||] [|||||||||]     [|] [|]     [|]  [|||||]]
-local function Load(Table)
-	local Nil,Connect = {},game.Close.Connect
-	local Destroy,Wait,Service,Valid,WaitForSequence,WaitForChildOfClass
+
+local function load(loadData)
+	local nil_, connect = {}, game.Close.Connect
+	local
+		destroy: (...any) -> (),
+		wait:
+			((value: RBXScriptSignal) -> ...any)
+			& ((value: number?) -> number),
+		service: (string) -> Instance,
+		valid: {
+			table: (table: { [any]: any? }?, substitute: { [any]: any? }?) -> { [any]: any? },
+			number: (number: number?, subsitute: number?) -> number?,
+			string: (string: string?, subsitute: string?) -> string?,
+			instance: (object: Instance?, className: string?) -> Instance?,
+			boolean: (boolean: string | boolean?, boolean?) -> boolean?,
+			cframe: (cframe: CFrame?, substitute: CFrame?) -> CFrame,
+			vector3: (vector: Vector3?, subsitute: Vector3?) -> Vector3,
+		},
+		waitForSequence: (object: Instance, ...string) -> Instance,
+		waitForChildOfClass: (object: Instance, className: string) -> Instance
 	do
-		local SignalWait,Services,DestroyObject,WaitForChild,DisconnectObject = game.Close.Wait,{},game.Destroy,game.WaitForChild,nil
+		local signalWait, services, destroyObject, waitForChild, disconnectObject =
+			game.Close.Wait, {}, game.Destroy, game.WaitForChild, nil
 		do
-			local Connection = Connect(game.Close,function() end)
-			DisconnectObject = Connection.Disconnect
-			DisconnectObject(Connection)
+			local connection = connect(game.Close, function() end)
+			disconnectObject = connection.Disconnect
+			disconnectObject(connection)
 		end
-		Destroy,Wait,Service,WaitForSequence,WaitForChildOfClass = function(...)
-			for _,Object in {...} do
-				local Function = ({
-					Instance = function()
-						pcall(DestroyObject,Object)
-					end,
-					RBXScriptConnection = function()
-						if Object.Connected then
-							pcall(DisconnectObject,Object)
-						end
-					end,
-					table = function()
-						for Index,Value in Object do
-							Object[Index] = nil
-							Destroy(Index)
-							Destroy(Value)
-						end
+		destroy, wait, service, waitForSequence, waitForChildOfClass =
+			function(...)
+				for _, object in { ... } do
+					local func = ({
+						Instance = function()
+							pcall(destroyObject, object)
+						end,
+						RBXScriptConnection = function()
+							if object.Connected then
+								pcall(disconnectObject, object)
+							end
+						end,
+						table = function()
+							for Index, Value in object do
+								object[Index] = nil
+								destroy(Index)
+								destroy(Value)
+							end
+						end,
+					})[typeof(object)]
+					if func then
+						func()
 					end
-				})[typeof(Object)]
-				if Function then
-					Function()
 				end
-			end
-		end,function(Value)
-			if typeof(Value) == "RBXScriptSignal" then
-				return SignalWait(Value)
-			end
-			return task.wait(Value)
-		end,function(Name)
-			Name = tostring(Name or 0)
-			if Services[Name] then
-				return Services[Name]
-			end
-			local Object = select(2,pcall(game.GetService,game,Name))
-			if typeof(Object) ~= "Instance" then
-				Object = select(2,pcall(game.GetService,game,("%sService"):format(Name)))
-			end
-			if typeof(Object) == "Instance" then
-				Services[Name] = Object
-				return Object
-			end
-			warn(debug.traceback("Invalid Service Name",2))
-		end,function(Object,...)
-			Object = Valid.Instance(Object)
-			for _,Name in {...} do
-				Name = Valid.String(Name)
-				if Name and Object then
-					Object = WaitForChild(Object,Name)
+			end, function(value)
+				if typeof(value) == "RBXScriptSignal" then
+					return signalWait(value)
 				end
+				return task.wait(value)
+			end, function(Name)
+				Name = tostring(Name or 0)
+				if services[Name] then
+					return services[Name]
+				end
+				local object = select(2, pcall(game.GetService, game, Name))
+				if typeof(object) ~= "Instance" then
+					object = select(2, pcall(game.GetService, game, ("%sService"):format(Name)))
+				end
+				if typeof(object) == "Instance" then
+					services[Name] = object
+					return object
+				end
+				warn(debug.traceback("Invalid service name", 2))
+			end, function(object, ...)
+				object = valid.instance(object)
+				for _, Name in { ... } do
+					Name = valid.string(Name)
+					if Name and object then
+						object = waitForChild(object, Name)
+					end
+				end
+				return object
+			end, function(object, className)
+				local Child = object:FindFirstChildOfClass(className)
+				while not Child or Child.ClassName ~= className do
+					Child = object.ChildAdded:Wait()
+				end
+				return Child
 			end
-			return Object
-		end,function(Object,ClassName)
-			local Child = Object:FindFirstChildOfClass(ClassName)
-			while not Child or Child.ClassName ~= ClassName do
-				Child = Object.ChildAdded:Wait()
-			end
-			return Child
-		end
 	end
-	Valid = {
-		Table = function(Table,Substitute)
-			Table = type(Table) == "table" and Table or {}
-			for Index,Value in type(Substitute) == "table" and Substitute or {} do
-				Table[Index] = typeof(Table[Index]) == typeof(Value) and Table[Index] or Value
+	valid = {
+		table = function(table, substitute)
+			table = type(table) == "table" and table or {}
+			for key, value in type(substitute) == "table" and substitute or {} do
+				table[key] = typeof(table[key]) == typeof(value) and table[key] or value
 			end
-			return Table
+			return table
 		end,
-		Number = function(Number,Substitute)
-			Number,Substitute = tonumber(Number),tonumber(Substitute)
-			return Number == Number and Number or Substitute == Substitute and Substitute or nil
+		number = function(number, substitute)
+			number, substitute = tonumber(number), tonumber(substitute)
+			return number == number and number or substitute == substitute and substitute or nil
 		end,
-		String = function(String,Substitute)
-			return type(String) == "string" and String or type(Substitute) == "string" and Substitute or nil
+		string = function(string, substitute)
+			return type(string) == "string" and string or type(substitute) == "string" and substitute or nil
 		end,
-		Instance = function(Object,ClassName)
-			return typeof(Object) == "Instance" and select(2,pcall(game.IsA,Object,Valid.String(ClassName,"Instance"))) == true and Object or nil
+		instance = function(object, className)
+			return if typeof(object) == "Instance"
+					and select(2, pcall(game.IsA, object, valid.string(className, "Instance"))) == true
+				then object
+				else nil
 		end,
-		Boolean = function(Boolean,Substitute)
-			Boolean = tostring(Boolean):lower()
-			for Names,Value in {
-				true_yes_on_positive_1_i = true,
-				false_no_off_negative_0_o = false
-			} do
-				for _,Name in Names:split"_" do
-					if Boolean == Name then
-						return Value
+		boolean = function(boolean, substitute)
+			boolean = tostring(boolean):lower()
+			for names: string, value: boolean in
+				{
+					true_yes_on_positive_1_i = true,
+					false_no_off_negative_0_o = false,
+				}
+			do
+				for _, name: string in names:split("_") do
+					if boolean == name then
+						return value
 					end
 				end
 			end
-			return Substitute
+			return substitute
 		end,
-		CFrame = function(CoordinateFrame,Substitute)
-			Substitute = typeof(Substitute or 0) == "CFrame" and Substitute or CFrame.new()
-			if typeof(CoordinateFrame or 0) == "Vector3" then
-				CoordinateFrame = CFrame.new(CoordinateFrame)
-			elseif typeof(CoordinateFrame or 0) ~= "CFrame" then
-				return Substitute
+		cframe = function(cframe, substitute)
+			substitute = if typeof(substitute or 0) == "CFrame" then substitute else CFrame.new()
+			if typeof(cframe or 0) == "Vector3" then
+				cframe = CFrame.new(cframe)
+			elseif typeof(cframe or 0) ~= "CFrame" then
+				return substitute
 			end
-			local Components = {CoordinateFrame:GetComponents()}
-			Substitute = {Substitute:GetComponents()}
-			for Index,Component in Components do
-				Components[Index] = Valid.Number(Component,Substitute[Component])
+			local components = { cframe:GetComponents() }
+			substitute = { substitute:GetComponents() }
+			for index: number, component: number in components do
+				components[index] = valid.number(component, substitute[component])
 			end
-			return CFrame.new(unpack(Components))
+			return CFrame.new(unpack(components))
 		end,
-		Vector3 = function(Vector,Substitute)
-			Substitute = typeof(Substitute or 0) == "Vector3" and Substitute or Vector3.new()
-			if typeof(Vector or 0) == "CFrame" then
-				Vector = Vector.Position
-			elseif typeof(Vector or 0) ~= "Vector3" then
-				return Substitute
+		vector3 = function(vector, substitute)
+			substitute = typeof(substitute or 0) == "Vector3" and substitute or Vector3.new()
+			if typeof(vector or 0) == "CFrame" then
+				vector = vector.Position
+			elseif typeof(vector or 0) ~= "Vector3" then
+				return substitute
 			end
-			local NewVector = Vector3.zero
-			for _,Axis in {"X","Y","Z"} do
-				NewVector += Vector3[("%sAxis"):format(Axis:lower())]*Valid.Number(Vector[Axis],Substitute[Axis])
+			local newVector = Vector3.zero
+			for _, axis: string in { "X", "Y", "Z" } do
+				newVector += Vector3[`{axis:lower()}Axis`] * valid.number(vector[axis], substitute[axis])
 			end
-			return NewVector
-		end
+			return newVector
+		end,
 	}
-	local function RandomString(Options)
-		Options = Valid.Table(Options,{
-			Format = "\0%s",
-			Length = math.random(5,99),
-			CharacterSet = {
-				NumberRange.new(48,57),
-				NumberRange.new(65,90),
-				NumberRange.new(97,122)
-			}
+	local function randomString(options: {
+		format: string,
+		length: number,
+		characterSet: { NumberRange },
+	}): string
+		options = valid.table(options, {
+			format = "\0%s",
+			length = math.random(5, 99),
+			characterSet = {
+				NumberRange.new(48, 57),
+				NumberRange.new(65, 90),
+				NumberRange.new(97, 122),
+			},
 		})
-		local AvailableCharacters = {}
-		for _,Set in Options.CharacterSet do
-			for Character = Set.Min,Set.Max do
-				table.insert(AvailableCharacters,string.char(Character))
+		local availableCharacters = {}
+		for _, set: NumberRange in options.characterSet do
+			for character = set.Min, set.Max do
+				table.insert(availableCharacters, string.char(character))
 			end
 		end
-		local String = {}
-		for _ = 1,Options.Length do
-			table.insert(String,AvailableCharacters[math.random(#AvailableCharacters)])
+		local outputString = {}
+		for _ = 1, options.length do
+			table.insert(outputString, availableCharacters[math.random(#availableCharacters)])
 		end
-		return table.concat(String)
+		return table.concat(outputString)
 	end
-	local function RandomBool(Chance)
-		Chance = Valid.Number(Chance,.5)
-		if Chance <= 0 then
+	local function randomBool(chance): boolean
+		chance = valid.number(chance, 0.5)
+		if chance <= 0 then
 			return false
 		end
-		return math.random(math.round(1/math.min(Chance,1))) == 1
+		return math.random(math.round(1 / math.min(chance, 1))) == 1
 	end
-	local function NilConvert(Value)
-		if Value == nil then
-			return Nil
-		elseif Value == Nil then
-			return nil
-		end
-		return Value
+	local function nilConvert(value): any?
+		return if value == nil then nil_ elseif value == nil_ then nil else value
 	end
-	local function NewInstance(ClassName,Parent,Properties)
-		local _,NewObject = pcall(Instance.new,ClassName)
-		if typeof(NewObject) == "Instance" then
-			Properties = Valid.Table(Properties,{
-				Name = RandomString(),
-				Archivable = RandomBool()
+	local function newInstance(className: string, parent: Instance?, properties: { [string]: any }?): Instance
+		local _, newObject = pcall(Instance.new, className)
+		if typeof(newObject) == "Instance" then
+			properties = valid.table(properties, {
+				Name = randomString(),
+				Archivable = randomBool(),
 			})
-			for Property,Value in Properties do
-				local Success,Error = pcall(function()
-					NewObject[Property] = NilConvert(Value)
+			for property: string, value in properties do
+				local success, error = pcall(function()
+					newObject[property] = nilConvert(value)
 				end)
-				if not Success then
-					warn(Error)
+				if not success then
+					warn(error)
 				end
 			end
-			NewObject.Parent = Valid.Instance(Parent)
-			return NewObject
+			newObject.Parent = valid.instance(parent)
+			return newObject
 		else
-			warn(NewObject)
+			warn(newObject)
 		end
 	end
-	local function Create(Data)
-		local Instances = {}
-		for _,InstanceData in Valid.Table(Data) do
-			if not Valid.String(InstanceData.ClassName) then
-				error"Missing ClassName in InstanceData for function Create"
-			elseif not Valid.String(InstanceData.Name) then
-				warn"Missing Name in InstanceData for function Create, substituting with ClassName"
-				InstanceData.Name = InstanceData.ClassName
+	local function create(data: {
+		{
+			Name: string,
+			Parent: Instance | string?,
+			ClassName: string,
+			Properties: { [string]: any? }?,
+		}
+	}): { Instance }
+		local instances = {}
+		for _, instanceData in valid.table(data) do
+			if not valid.string(instanceData.ClassName) then
+				error("Missing ClassName in InstanceData for function Create")
+			elseif not valid.string(instanceData.Name) then
+				warn("Missing Name in InstanceData for function Create, substituting with ClassName")
+				instanceData.Name = instanceData.ClassName
 			end
-			Instances[InstanceData.Name] = NewInstance(InstanceData.ClassName,Valid.String(InstanceData.Parent) and Instances[InstanceData.Parent] or InstanceData.Parent,InstanceData.Properties)
+			instances[instanceData.Name] = newInstance(
+				instanceData.ClassName,
+				valid.string(instanceData.Parent) and instances[instanceData.Parent] or instanceData.Parent,
+				instanceData.Properties
+			)
 		end
-		return Instances
+		return instances
 	end
-	local function DecodeJSON(JSON,Substitute)
-		local Success,Output = pcall(Service"Http".JSONDecode,Service"Http",Valid.String(JSON,"[]"))
-		return Valid.Table(Success and Output or {},Substitute)
+	local function jsonDecode(json: string, substitute: { [any]: any? }): { [any]: any? }
+		local success, output = pcall(service("Http").JSONDecode, service("Http"), valid.string(json, "[]"))
+		return valid.table(success and output or {}, substitute)
 	end
-	local function WaitForSignal(Signal,MaxYield)
-		local Return = NewInstance"BindableEvent"
-		Destroy(Return)
-		if Valid.Number(MaxYield) then
-			task.delay(MaxYield,Return.Fire,Return)
+	local function waitForSignal(signal: RBXScriptSignal | (...any) -> ...any, maxYield: number?): ...any
+		local returnValue = newInstance("BindableEvent")
+		destroy(returnValue)
+		if valid.number(maxYield) then
+			task.delay(maxYield, returnValue.Fire, returnValue)
 		end
-		local SignalStart,Ready = os.clock()
-		local Functionality = ({
+		local signalStart, ready = os.clock()
+		local func = ({
 			RBXScriptSignal = function()
-				Return:Fire(Wait(Signal))
+				returnValue:Fire(wait(signal))
 			end,
 			["function"] = function()
 				local Continue
 				repeat
-					(function(Success,...)
+					(function(Success, ...)
 						if Success and ... then
 							Continue = true
-							if not Ready then
-								Wait()
+							if not ready then
+								wait()
 							end
-							Return:Fire(...)
+							returnValue:Fire(...)
 						end
-					end)(pcall(Signal))
-				until Continue or Valid.Number(MaxYield) and MaxYield < os.clock()-SignalStart
-			end
-		})[typeof(Signal)]
-		if Functionality then
-			task.spawn(Functionality)
+					end)(pcall(signal))
+				until Continue or valid.number(maxYield) and maxYield < os.clock() - signalStart
+			end,
+		})[typeof(signal)]
+		if func then
+			task.spawn(func)
 		end
-		Ready = true
-		return Wait(Return.Event)
+		ready = true
+		return wait(returnValue.Event)
 	end
-	local function Animate(...)
-		for Index = 1,select("#",...),2 do
-			local Object,Data = select(Index,...)
-			if Valid.Instance(Object) then
-				Data = Valid.Table(Data,{
-					Time = .5,
-					DelayTime = 0,
-					Yields = false,
-					FinishDelay = 0,
-					Properties = {},
-					RepeatCount = 0,
-					Reverses = false,
-					EasingStyle = Enum.EasingStyle.Quad,
-					EasingDirection = Enum.EasingDirection.Out
+	local function animate(...)
+		for index = 1, select("#", ...), 2 do
+			local object: Instance, data: {
+				secondsTime: number,
+				delayTime: number,
+				yields: boolean,
+				finishDelay: number,
+				properties: { [string]: any },
+				repeatCount: number,
+				reverses: boolean,
+				easingStyle: Enum.EasingStyle,
+				easingDirection: Enum.EasingDirection,
+			} =
+				select(index, ...)
+			if valid.instance(object) then
+				data = valid.table(data, {
+					time = 0.5,
+					delayTime = 0,
+					yields = false,
+					finishDelay = 0,
+					properties = {},
+					repeatCount = 0,
+					reverses = false,
+					easingStyle = Enum.EasingStyle.Quad,
+					easingDirection = Enum.EasingDirection.Out,
 				})
-				local Tween = Service"Tween":Create(Object,TweenInfo.new(Data.Time,Data.EasingStyle,Data.EasingDirection,Data.RepeatCount,Data.Reverses,Data.DelayTime),Data.Properties)
-				Tween:Play()
-				if Data.Yields then
-					Wait(Tween.Completed)
+				local tween = service("Tween"):Create(
+					object,
+					TweenInfo.new(
+						data.secondsTime,
+						data.easingStyle,
+						data.easingDirection,
+						data.repeatCount,
+						data.reverses,
+						data.delayTime
+					),
+					data.properties
+				)
+				tween:Play()
+				if data.yields then
+					wait(tween.Completed)
 				end
-				if 0 < Data.FinishDelay then
-					Wait(Data.FinishDelay)
+				if 0 < data.finishDelay then
+					wait(data.finishDelay)
 				end
 			end
 		end
 	end
-	local function GetCharacter(Player,MaxYield)
-		Player = Valid.Instance(Player,"Player")
-		if not Player then
+	local function getCharacter(player: Player, maxYield: number?): Model?
+		player = valid.instance(player, "Player")
+		if not player then
 			return
 		end
-		if Valid.Instance(Player.Character,"Model") then
-			return Player.Character
+		if valid.instance(player.Character, "Model") then
+			return player.Character
 		end
-		local Character = WaitForSignal(Player.CharacterAdded,MaxYield)
-		if Character then
-			return Character
+		local character = waitForSignal(player.CharacterAdded, maxYield)
+		if character then
+			return character
 		end
 	end
-	local function GetHumanoid(Character,MaxYield)
-		MaxYield = Valid.Number(MaxYield,10)
-		if Valid.Instance(Character,"Player") then
-			local Duration = os.clock()
-			local NewCharacter = GetCharacter(Character,MaxYield)
-			if NewCharacter then
-				Character = NewCharacter
-				MaxYield -= os.clock()-Duration
+	local function getHumanoid(character: Player | Model, maxYield: number?): Humanoid?
+		maxYield = valid.number(maxYield, 10)
+		if valid.instance(character, "Player") then
+			local duration = os.clock()
+			local newCharacter = getCharacter(character, maxYield)
+			if newCharacter then
+				character = newCharacter
+				maxYield -= os.clock() - duration
 			else
 				return
 			end
-		elseif not Valid.Instance(Character,"Model") then
+		elseif not valid.instance(character, "Model") then
 			return
 		end
-		local Humanoid = WaitForSignal(function()
-			local Humanoid = Character:FindFirstChildOfClass"Humanoid" or Wait(Character.ChildAdded)
-			if Valid.Instance(Humanoid,"Humanoid") then
-				return Humanoid
+		local humanoid = waitForSignal(function()
+			local humanoid = character:FindFirstChildOfClass("Humanoid") or wait(character.ChildAdded)
+			if valid.instance(humanoid, "Humanoid") then
+				return humanoid
 			end
-		end,MaxYield)
-		if Humanoid then
-			return Humanoid
+		end, maxYield)
+		if humanoid then
+			return humanoid
 		end
 	end
-	local function ConvertTime(Time)
-		local Sign = Time < 0
-		Time = math.abs(Time)
-		for _,Values in {
-			{31536e3,"year"},
-			{2628003,"month"},
-			{604800,"week"},
-			{86400,"day"},
-			{3600,"hour"},
-			{60,"minute"},
-			{1,"second"},
-			{.001,"millisecond"},
-			{1e-6,"microsecond"},
-			{1e-9,"nanosecond"}
-		} do
-			if Values[1] <= Time then
-				Time = math.round(Time/Values[1]*100)/100
-				return ("%s%s %s%s"):format(Sign and "-" or "",tostring(Time),Values[2],(Time ~= 1 or Sign) and "s" or "")
+	local function convertTime(time: number): string
+		local sign = time < 0
+		time = math.abs(time)
+		for _, values in
+			{
+				{ 31536e3, "year" },
+				{ 2628003, "month" },
+				{ 604800, "week" },
+				{ 86400, "day" },
+				{ 3600, "hour" },
+				{ 60, "minute" },
+				{ 1, "second" },
+				{ 1e-3, "millisecond" },
+				{ 1e-6, "microsecond" },
+				{ 1e-9, "nanosecond" },
+			}
+		do
+			if values[1] <= time then
+				time = math.round(time / values[1] * 100) / 100
+				return `{if sign then "-" else ""}{time} {values[2]}{if time ~= 1 or sign then "s" else ""}`
 			end
 		end
 		return "no time"
 	end
-	local function GetContentText(String)
-		local CheckTextBox = NewInstance("TextBox",nil,{
-			Text = String,
-			RichText = true
+	local function getContentText(string: string): string
+		local checkTextBox = newInstance("TextBox", nil, {
+			Text = string,
+			RichText = true,
 		})
-		Destroy(CheckTextBox)
-		return CheckTextBox.ContentText
+		destroy(checkTextBox)
+		return checkTextBox.ContentText
 	end
-	local function DeltaLerp(Start,Goal,Alpha,Delta)
-		Alpha = math.clamp((1-Valid.Number(Alpha,0))^Delta,0,1)
-		return Valid.Number(Start) and Valid.Number(Goal) and Goal+(Start-Goal)*Alpha or Goal:Lerp(Start,Alpha)
+	local function deltaLerp(start, goal, alpha: number, delta: number)
+		alpha = math.clamp((1 - valid.number(alpha, 0)) ^ delta, 0, 1)
+		return valid.number(start) and valid.number(goal) and goal + (start - goal) * alpha or goal:Lerp(start, alpha)
 	end
-	Table.Owner = Service"Players".LocalPlayer
-	if not Service"Run":IsServer() then
-		while not Table.Owner do
-			Wait(Service"Players".PlayerAdded)
-			Table.Owner = Service"Players".LocalPlayer
+	loadData.owner = service("Players").LocalPlayer
+	if not service("Run"):IsServer() then
+		while not loadData.owner do
+			wait(service("Players").PlayerAdded)
+			loadData.owner = service("Players").LocalPlayer
 		end
 	end
-	for Name,Value in {
-		Nil = Nil,
-		Wait = Wait,
-		Valid = Valid,
-		Create = Create,
-		Animate = Animate,
-		Connect = Connect,
-		Destroy = Destroy,
-		Service = Service,
-		DeltaLerp = DeltaLerp,
-		DecodeJSON = DecodeJSON,
-		NilConvert = NilConvert,
-		RandomBool = RandomBool,
-		ConvertTime = ConvertTime,
-		GetHumanoid = GetHumanoid,
-		NewInstance = NewInstance,
-		GetCharacter = GetCharacter,
-		RandomString = RandomString,
-		WaitForSignal = WaitForSignal,
-		GetContentText = GetContentText,
-		WaitForSequence = WaitForSequence,
-		WaitForChildOfClass = WaitForChildOfClass
-	} do
-		Table[Name] = Value
+	for name: string, value in
+		{
+			nil_ = nil_,
+			wait = wait,
+			valid = valid,
+			create = create,
+			animate = animate,
+			connect = connect,
+			destroy = destroy,
+			service = service,
+			deltaLerp = deltaLerp,
+			jsonDecode = jsonDecode,
+			nilConvert = nilConvert,
+			randomBool = randomBool,
+			convertTime = convertTime,
+			getHumanoid = getHumanoid,
+			newInstance = newInstance,
+			getCharacter = getCharacter,
+			randomString = randomString,
+			waitForSignal = waitForSignal,
+			getContentText = getContentText,
+			waitForSequence = waitForSequence,
+			waitForChildOfClass = waitForChildOfClass,
+		}
+	do
+		loadData[name] = value
 	end
-	return Table
+	return loadData
 end
-if select("#",...) < 1 then
-	return Load
+if select("#", ...) < 1 then
+	return load
 end
-return Load(...)
+return load(...)
