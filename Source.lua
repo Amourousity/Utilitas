@@ -291,7 +291,7 @@ local function load(loadData)
 				select(index, ...)
 			if valid.instance(object) then
 				data = valid.table(data, {
-					time = 0.5,
+					secondsTime = 0.5,
 					delayTime = 0,
 					yields = false,
 					finishDelay = 0,
