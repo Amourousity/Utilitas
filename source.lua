@@ -216,26 +216,32 @@ local function load(loadData)
 		end
 	end
 	local function create(data: {
-		{
-			Name: string,
+		[string]: {
 			Parent: Instance | string?,
 			ClassName: string,
-			Properties: { [string]: any? }?,
-		}
-	}): { Instance }
+			Properties: { [string]: any }?,
+		},
+	}): { [string]: Instance }
 		local instances = {}
-		for _, instanceData in valid.table(data) do
+		for name, instanceData in valid.table(data) do
 			if not valid.string(instanceData.ClassName) then
-				error("Missing ClassName in InstanceData for function Create")
-			elseif not valid.string(instanceData.Name) then
-				warn("Missing Name in InstanceData for function Create, substituting with ClassName")
-				instanceData.Name = instanceData.ClassName
+				error(`object {name} missing ClassName from instanceData`, 2)
 			end
-			instances[instanceData.Name] = newInstance(
+			instances[name] = newInstance(
 				instanceData.ClassName,
-				valid.string(instanceData.Parent) and instances[instanceData.Parent] or instanceData.Parent,
+				nil,
 				instanceData.Properties
 			)
+		end
+		for name, object in instances do
+			if valid.string(data[name].Parent) then
+				object.Parent = instances[data[name].Parent]
+			end
+		end
+		for name, object in instances do
+			if not valid.string(data[name].Parent) then
+				object.Parent = data[name].Parent
+			end
 		end
 		return instances
 	end
